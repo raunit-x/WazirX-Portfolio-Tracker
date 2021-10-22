@@ -10,7 +10,6 @@ class TradingReportAnalysis:
         except FileNotFoundError as e:
             print(f"{e}: {trading_report_path}")
             return
-        getcontext().prec = 30
         self.total_deposits = 0
         self.total_withdrawals = 0
         self.holdings = {}
