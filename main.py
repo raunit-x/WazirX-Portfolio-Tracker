@@ -22,20 +22,14 @@ def get_payloads(ticker: str, payloads: dict):
     payloads[ticker] = data
 
 
-def current_value(payloads: dict, trading_report: TradingReport) -> dict:
+def get_value_per_token(payloads: dict, trading_report: TradingReport) -> dict:
     value_per_token = {}
     total_value = Decimal('0')
-    values = []
     for ticker, num_coins in trading_report.holdings.items():
         buying_price = Decimal(payloads[ticker][TICKER][BUY])
         token_value = Decimal(buying_price) * Decimal(num_coins)
         total_value += token_value
         value_per_token[ticker] = {TOTAL_VALUE: token_value, BUY: buying_price}
-        values.append((ticker, token_value))
-    values.sort(key=lambda x: -x[1])
-    for val in values:
-        print(f"{val[0]}: {val[1]}")
-    print(f'Current Portfolio Value: {total_value}')
     return value_per_token
 
 
@@ -67,7 +61,7 @@ def main():
     pool.join()
     end = time.time()
     print(f"Time taken for API Calls: {end - start}s")
-    token_info = current_value(payloads, trading_report)
+    token_info = get_value_per_token(payloads, trading_report)
     report_df = generate_holdings_report(token_info, trading_report)
     print(report_df)
 
