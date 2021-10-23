@@ -1,43 +1,59 @@
 import requests
 import os
-from datetime import datetime
+from trading_report_analysis import TradingReport, trading_report
 from wazirx_api import wazirx_api_details
+import time
+import threading
+from decimal import *
+from multiprocessing.pool import ThreadPool as Pool
 
 
-def get_payloads():
-    payloads = {}
-    for ticker in MY_TICKERS:
-        url = os.path.join(BASE_API_ENDPOINT, VERSION, 'tickers', ticker)
-        response = requests.get(url, params={'market': ticker})
-        data = response.json()
-        payloads[ticker] = data
-    return payloads
+def get_payloads(ticker: str, payloads: dict):
+    def get_data(tkr, currency='inr'):
+        url = os.path.join(BASE_API_ENDPOINT, VERSION, 'tickers', tkr + currency)
+        response = requests.get(url, params={'market': tkr + currency})
+        return response.json()
+
+    data = get_data(ticker.lower())
+    if data.get('code') == 2000 or not float(data['ticker']['vol']):
+        data = get_data(ticker.lower(), 'usdt')
+        data['ticker']['buy'] = Decimal(float(data['ticker']['buy']) * float(payloads['usdt']['ticker']['buy']))
+    payloads[ticker] = data
 
 
 def current_value(payloads: dict):
-    total_value = 0
-    for ticker, payload in payloads.items():
-        print(ticker, payload)
-        num_coins = MAPPED_HOLDINGS[ticker]
-        buying_price = float(payload['ticker']['buy'])
-        total_value += buying_price * num_coins
+    total_value = Decimal('0')
+    values = []
+    print(payloads.keys())
+    for ticker, num_coins in trading_report.holdings.items():
+        buying_price = Decimal(payloads[ticker]['ticker']['buy'])
+        token_value = Decimal(buying_price) * Decimal(num_coins)
+        total_value += token_value
+        values.append((ticker, token_value))
+    values.sort(key=lambda val: -val[1])
+    for val in values:
+        print(f"{val[0]}: {val[1]}")
     print(f'Current Portfolio Value: {total_value}')
 
 
 def main():
-    payloads = get_payloads()
+    getcontext().prec = 10
+    pool_size = 16
+    payloads = {}
+    start = time.time()
+    pool = Pool(pool_size)
+    get_payloads('usdt', payloads)
+    for ticker in trading_report.holdings:
+        pool.apply_async(get_payloads, (ticker, payloads))
+    pool.close()
+    pool.join()
+    end = time.time()
+    print(f"Time taken for API Calls: {end - start}s")
     current_value(payloads)
-    get_payloads()
 
 
 if __name__ == '__main__':
     BASE_API_ENDPOINT = wazirx_api_details.BASE_API_ENDPOINT
     VERSION = wazirx_api_details.VERSION
-    MY_COIN_TICKERS = ['BTC', 'ADA', 'ETH', 'XLM', 'LINK', 'XRP', 'MATIC', 'REN', 'ZIL', 'VET', 'BTT', 'SC', 'XEM',
-                       'POLY']
-    MY_HOLDINGS = [0.00809, 94.3, 0.0348, 166.5, 6.31, 74.4, 55.4, 87.7, 779, 670, 12429, 1991, 87, 1]
-    MY_TICKERS = [coin_ticker.lower() + 'inr' for coin_ticker in MY_COIN_TICKERS]
-    MAPPED_HOLDINGS = {tkr: hold for tkr, hold in zip(MY_TICKERS, MY_HOLDINGS)}
-    print(MY_TICKERS)
     main()
 

@@ -1,8 +1,9 @@
 import pandas as pd
 import os
+from decimal import *
 
 
-class TradingReportAnalysis:
+class TradingReport:
     def __init__(self, trading_report_path: str):
         try:
             self.trading_report: dict = self.read_excel(trading_report_path)
@@ -10,15 +11,15 @@ class TradingReportAnalysis:
         except FileNotFoundError as e:
             print(f"{e}: {trading_report_path}")
             return
-        self.total_deposits = 0
-        self.total_withdrawals = 0
+        getcontext().prec = 10
+        self.total_deposits = Decimal('0')
+        self.total_withdrawals = Decimal('0')
         self.holdings = {}
         self.order_history = {}
         self.investment_per_token = {}
-        self.internal_fee = 0
-        self.external_fee = 0
-        self.current_balance = 0
-        self.usdt_to_inr = 77.8
+        self.external_fee = Decimal('0')
+        self.current_balance = Decimal('0')
+        self.usdt_to_inr = Decimal('77.8')
         self.read_account_balance(self.trading_report['Account Balance'])
         for sheet_name in self.excel_sheets:
             attr_name = f'read_{"_".join(sheet_name.lower().split())}'
@@ -31,8 +32,8 @@ class TradingReportAnalysis:
         return pd.read_excel(path, sheet_name=None)
 
     def read_deposits_and_withdrawals(self, df: pd.DataFrame):
-        deposits = df[df['Transaction'] == 'Deposit']['Volume'].sum()
-        withdrawals = df[df['Transaction'] == 'Withdrawal']['Volume'].sum()
+        deposits = df[df['Transaction'] == 'Deposit']['Volume'].apply(lambda val: Decimal(val)).sum()
+        withdrawals = df[df['Transaction'] == 'Withdrawal']['Volume'].apply(lambda val: Decimal(val)).sum()
         self.total_deposits = deposits
         self.total_withdrawals = withdrawals
 
@@ -42,17 +43,14 @@ class TradingReportAnalysis:
     def read_exchange_trades(self, df: pd.DataFrame):
         for i in range(len(df)):
             tok = df.iloc[i]['Market']
-            price = df.iloc[i]['Price']
-            trade = int(df.iloc[i]['Trade'] == 'Sell') * -2 + 1
-            vol = df.iloc[i]['Volume']
-            fee = df.iloc[i]['Fee']
+            price = Decimal(df.iloc[i]['Price'])
+            trade = Decimal(int(df.iloc[i]['Trade'] == 'Sell') * -2 + 1)
+            vol = Decimal(df.iloc[i]['Volume'])
             if 'USDT' in tok:
                 tok = tok.split('USDT')[0]
-                fee *= self.usdt_to_inr
                 price *= self.usdt_to_inr
             elif 'INR' in tok:
                 tok = tok.split('INR')[0]
-            self.internal_fee += fee
             if tok not in self.order_history:
                 self.order_history[tok] = []
             self.order_history[tok].append((price, vol, trade))
@@ -62,13 +60,8 @@ class TradingReportAnalysis:
                 self.investment_per_token[tok] = sum(val[0] * val[1] * val[-1] for val in orders)
 
     def read_account_ledger(self, df: pd.DataFrame):
-        self.current_balance = df['Balance'][0]
+        self.current_balance = Decimal(df['Balance'][0])
 
 
-def main():
-    trading_report_path = os.path.join(os.getcwd(), 'Trading Reports', 'trading_report.xlsx')
-    trading_report = TradingReportAnalysis(trading_report_path)
-
-
-if __name__ == '__main__':
-    main()
+trading_report_path = os.path.join(os.getcwd(), 'Trading Reports', 'trading_report.xlsx')
+trading_report = TradingReport(trading_report_path)
