@@ -1,0 +1,6 @@
+BUY = 'buy'
+TOTAL_VALUE = 'total_value'
+USDT = 'usdt'
+INR = 'inr'
+TICKER = 'ticker'
+VOLUME = 'vol'

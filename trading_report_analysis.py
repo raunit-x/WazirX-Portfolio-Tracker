@@ -1,10 +1,9 @@
 import pandas as pd
-import os
 from decimal import *
 
 
 class TradingReport:
-    def __init__(self, trading_report_path: str):
+    def __init__(self, trading_report_path: str, usdt_to_inr=Decimal('77.8')):
         try:
             self.trading_report: dict = self.read_excel(trading_report_path)
             self.excel_sheets = list(self.trading_report.keys())
@@ -19,7 +18,7 @@ class TradingReport:
         self.investment_per_token = {}
         self.external_fee = Decimal('0')
         self.current_balance = Decimal('0')
-        self.usdt_to_inr = Decimal('77.8')
+        self.usdt_to_inr = usdt_to_inr
         self.read_account_balance(self.trading_report['Account Balance'])
         for sheet_name in self.excel_sheets:
             attr_name = f'read_{"_".join(sheet_name.lower().split())}'
@@ -61,7 +60,3 @@ class TradingReport:
 
     def read_account_ledger(self, df: pd.DataFrame):
         self.current_balance = Decimal(df['Balance'][0])
-
-
-trading_report_path = os.path.join(os.getcwd(), 'Trading Reports', 'trading_report.xlsx')
-trading_report = TradingReport(trading_report_path)
