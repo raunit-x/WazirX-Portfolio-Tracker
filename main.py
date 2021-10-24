@@ -65,9 +65,8 @@ def print_metrics(metrics: dict):
         end='\r')
 
 
-def print_report(report_df: pd.DataFrame, trading_report: TradingReport):
+def print_report(report_df: pd.DataFrame, trading_report: TradingReport, column_length=18):
     print_metrics(get_metrics(trading_report, report_df))
-    column_length = 18
     column_string = ''.join([f"{ef.bold}{fg.da_magenta}{col:{column_length}}{BColors.ENDC}" for col in report_df.columns])
     print(f"{column_string}\n\n", end='\x1b[1K\r')
     n = len(report_df.columns)
@@ -95,6 +94,7 @@ def print_report(report_df: pd.DataFrame, trading_report: TradingReport):
 
 
 def main():
+    column_length = 18
     while True:
         trading_report_path = os.environ.get('TRADING_REPORT_PATH', None)
         payloads = {}
@@ -109,12 +109,13 @@ def main():
         pool.join()
         token_info = get_value_per_token(payloads, trading_report)
         os.system('cls' if os.name == 'nt' else 'clear')
+        print(f"{' ':{2 * column_length}}{ef.inverse}{ef.bold}{fg.li_cyan}{BColors.UNDERLINE}{ef.italic}WAZIRX{rs.italic}{fg.li_yellow} PORTFOLIO TRACKER{rs.bold_dim}{BColors.ENDC}{rs.inverse}\n")
         report_df = generate_holdings_report(token_info, trading_report)
-        print_report(report_df, trading_report)
+        print_report(report_df, trading_report, column_length)
         for i in range(10, -1, -1):
             time.sleep(1)
             i = f'{i:0}'
-            print(f" {fg.da_green}REFRESHING THE DATA IN: {rs.bold_dim}{fg.cyan}{i.zfill(2)} SECONDS", end='\r')
+            print(f" {ef.bold}{fg.da_green}REFRESHING DATA IN: {rs.bold_dim}{fg.cyan}{i.zfill(2)} SECONDS{rs.dim_bold}", end='\r')
 
 
 if __name__ == '__main__':
