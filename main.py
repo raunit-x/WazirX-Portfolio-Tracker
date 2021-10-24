@@ -52,19 +52,22 @@ def get_metrics(trading_report: TradingReport, report_df: pd.DataFrame) -> dict:
     return metrics
 
 
-def print_report(report_df: pd.DataFrame, trading_report: TradingReport):
-    column_length = 18
-    metrics = get_metrics(trading_report, report_df)
+def print_metrics(metrics: dict):
     total_investment = metrics['total_investment']
     total_current_value = metrics['total_current_value']
     gains, gains_total = metrics['gains'], metrics['gains_total']
 
-    print(f"\n{ef.bold}{fg.yellow}INITIAL INVESTMENT: {RUPEE}{total_investment:.2f}\n", end='\r')
-    color = fg.da_green if total_current_value > total_investment else fg.da_red
-    print(f"{ef.bold}{color}CURRENT PORTFOLIO : {RUPEE}{total_current_value:.2f}\n", end='\r')
-    print(f"{ef.bold}{color}GAINS : {RUPEE}{gains_total:.2f} ({UP_ARROW if gains > 0 else DOWN_ARROW} {gains:.2f} %)\n\n\n",
-          end='\r')
+    print(f"\n{ef.bold}{fg.li_yellow}INITIAL INVESTMENT: {rs.bold_dim}{RUPEE}{total_investment:.2f}\n", end='\r')
+    color = fg.li_green if total_current_value > total_investment else fg.li_red
+    print(f"{ef.bold}{color}CURRENT PORTFOLIO : {rs.bold_dim}{RUPEE}{total_current_value:.2f}\n", end='\r')
+    print(
+        f"{ef.bold}{color}GAINS : {rs.bold_dim}{RUPEE}{gains_total:.2f} ({UP_ARROW if gains > 0 else DOWN_ARROW} {gains:.2f} %)\n\n\n",
+        end='\r')
 
+
+def print_report(report_df: pd.DataFrame, trading_report: TradingReport):
+    print_metrics(get_metrics(trading_report, report_df))
+    column_length = 18
     column_string = ''.join([f"{ef.bold}{fg.da_magenta}{col:{column_length}}{BColors.ENDC}" for col in report_df.columns])
     print(f"{column_string}\n\n", end='\x1b[1K\r')
     n = len(report_df.columns)
@@ -111,7 +114,7 @@ def main():
         for i in range(10, -1, -1):
             time.sleep(1)
             i = f'{i:0}'
-            print(f" {fg.da_green}REFRESHING THE DATA IN: {i.zfill(2)} SECONDS", end='\r')
+            print(f" {fg.da_green}REFRESHING THE DATA IN: {rs.bold_dim}{fg.cyan}{i.zfill(2)} SECONDS", end='\r')
 
 
 if __name__ == '__main__':

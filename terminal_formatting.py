@@ -1,4 +1,4 @@
-from sty import fg, ef
+from sty import fg, ef, rs
 from token_constants import *
 
 
@@ -30,5 +30,5 @@ def progress_bar(index, total, bar_len=50):
 
 color_encoding = [fg.li_cyan, (fg.li_red, fg.da_green), fg.cyan, fg.yellow, (fg.li_red, fg.da_green),
                   (fg.li_red, fg.da_green)]
-text_formatting = [ef.bold, ef.bold, ef.bold, '', ef.bold, ef.bold]
+text_formatting = [ef.bold, rs.dim_bold, ef.bold, rs.dim_bold, ef.bold, ef.bold]
 prefixes = ['', RUPEE, '', RUPEE, RUPEE, (UP_ARROW, DOWN_ARROW)]
