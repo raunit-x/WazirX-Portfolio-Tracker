@@ -8,6 +8,7 @@ from multiprocessing.pool import ThreadPool as Pool
 import pandas as pd
 from token_constants import *
 from terminal_formatting import *
+from sty import fg, bg, ef, rs
 
 
 def get_payloads(ticker: str, payloads: dict):
@@ -46,6 +47,7 @@ def generate_holdings_report(token_info: dict, trading_report: TradingReport) ->
 
 
 def print_report(report_df: pd.DataFrame, trading_report: TradingReport):
+    print()
     total_investment = trading_report.total_deposits
     total_current_value = report_df['CURRENT VALUE'].sum()
     gains = (total_current_value / total_investment - 1) * 100
@@ -75,31 +77,37 @@ def print_report(report_df: pd.DataFrame, trading_report: TradingReport):
                     val = f"{float(val):.4f}"
                 else:
                     val = f"{float(val):.2f}"
-            if j == len(report_df.columns) - 1:
-                val = f"{val} %"
             prefix = prefixes[j]
             if isinstance(prefix, tuple):
                 prefix = prefix[int(report_df.iloc[i][j] < 0)]
-            print(f"{text_fmt}{color} {prefix}{val:<20}", end='')
+            # val = f"{prefix}{val}"
+            if j == len(report_df.columns) - 1:
+                val = f"{prefix} {val} %"
+            else:
+                val = f"{prefix}{val}"
+            print(f"{text_fmt}{color}{val:<22}", end='')
         print()
         print()
 
 
 def main():
-    trading_report_path = '/' + os.path.join(*__file__.split('/')[:-1], 'Trading Reports', 'trading_report.xlsx')
+    for i in range(5):
+        time.sleep(0.02)
+        progress_bar(i, 10)
+    trading_report_path = '/Users/raunitdalal/PycharmProjects/myCryptoApp/Trading Reports/trading_report.xlsx'
     payloads = {}
     get_payloads(USDT, payloads)
     trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][TICKER][BUY]))
     getcontext().prec = 10
     pool_size = 16
-    start = time.time()
     pool = Pool(pool_size)
     for ticker in trading_report.holdings:
         pool.apply_async(get_payloads, (ticker, payloads))
+    for i in range(5, 10):
+        time.sleep(0.01)
+        progress_bar(i, 10)
     pool.close()
     pool.join()
-    end = time.time()
-    # print(f"{fg.grey}{ef.inverse}Time taken for API Calls: {end - start:.2f}s{rs.inverse}")
     token_info = get_value_per_token(payloads, trading_report)
     report_df = generate_holdings_report(token_info, trading_report)
     print_report(report_df, trading_report)

@@ -1,6 +1,3 @@
-from sty import fg, bg, ef, rs
-
-
 class BColors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -13,5 +10,15 @@ class BColors:
     UNDERLINE = '\033[4m'
 
 
-# print(f"{fg.li_green}Warning: No active formats remain. Continue?{rs.inverse}")
-# print(f"{BColors.OKCYAN}{ef.inverse} This is bold text {ef.italic} This is italic text{rs.inverse}")
+def progress_bar(index, total, bar_len=50):
+    percent_done = (index + 1) / total * 100
+    percent_done = round(percent_done, 1)
+
+    done = round(percent_done / (100 / bar_len))
+    togo = bar_len - done
+
+    done_str = '█' * int(done)
+    togo_str = '░' * int(togo)
+
+    print(f'{BColors.WARNING if percent_done < 100 else BColors.OKCYAN}GATHERING DATA: [{done_str}{togo_str}] '
+          f'{percent_done}% Done{BColors.ENDC}', end='\r')
