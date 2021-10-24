@@ -9,7 +9,6 @@ import pandas as pd
 from token_constants import *
 from terminal_formatting import *
 from sty import fg, bg, ef, rs
-import sys
 
 
 def get_payloads(ticker: str, payloads: dict):
