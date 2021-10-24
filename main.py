@@ -44,7 +44,7 @@ def generate_holdings_report(token_info: dict, trading_report: TradingReport) ->
 
 def get_metrics(trading_report: TradingReport, report_df: pd.DataFrame) -> dict:
     metrics = {
-        'total_investment': Decimal(trading_report.total_deposits) - Decimal(trading_report.total_withdrawals),
+        'total_investment': Decimal(trading_report.total_deposits) - Decimal(float(trading_report.total_withdrawals)),
         'total_current_value': Decimal(report_df['CURRENT VALUE'].sum()),
     }
     metrics['gains'] = (metrics['total_current_value'] / metrics['total_investment'] - 1) * 100
