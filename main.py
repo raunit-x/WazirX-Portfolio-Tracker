@@ -53,6 +53,7 @@ def get_metrics(trading_report: TradingReport, report_df: pd.DataFrame) -> dict:
 
 
 def print_report(report_df: pd.DataFrame, trading_report: TradingReport):
+    column_length = 18
     metrics = get_metrics(trading_report, report_df)
     total_investment = metrics['total_investment']
     total_current_value = metrics['total_current_value']
@@ -64,29 +65,29 @@ def print_report(report_df: pd.DataFrame, trading_report: TradingReport):
     print(f"{ef.bold}{color}GAINS : {RUPEE}{gains_total:.2f} ({UP_ARROW if gains > 0 else DOWN_ARROW} {gains:.2f} %)\n\n\n",
           end='\r')
 
-    column_string = ''.join([f"{ef.bold}{fg.da_magenta}{col:18}{BColors.ENDC}" for col in report_df.columns])
+    column_string = ''.join([f"{ef.bold}{fg.da_magenta}{col:{column_length}}{BColors.ENDC}" for col in report_df.columns])
     print(f"{column_string}\n\n", end='\x1b[1K\r')
+    n = len(report_df.columns)
     for i in range(len(report_df)):
         row_string = ''
         for j in range(len(report_df.columns)):
             color = color_encoding[j]
             text_fmt = text_formatting[j]
+            val = report_df.iloc[i][j]
+            prefix = prefixes[j]
+
             if isinstance(color, tuple):
                 color = color[int(report_df.iloc[i][-1] > 0)]
-            val = report_df.iloc[i][j]
+
             if isinstance(val, Decimal):
-                if j == 2:
-                    val = f"{float(val):.4f}"
-                else:
-                    val = f"{float(val):.2f}"
-            prefix = prefixes[j]
+                val = f"{float(val):.{2 + 2 * int(j == 2)}f}"
+
             if isinstance(prefix, tuple):
                 prefix = prefix[int(report_df.iloc[i][j] < 0)]
-            if j == len(report_df.columns) - 1:
-                val = f"{prefix} {val} %"
-            else:
-                val = f"{prefix}{val}"
-            row_string += f"{text_fmt}{color}{val:18}"
+
+            val = f"{prefix}{' ' * int(j == n - 1)}{val}{' %' * int(j == n - 1)}"
+
+            row_string += f"{text_fmt}{color}{val:{column_length}}"
         print(f"{row_string}\n\n", end='\r')
 
 
