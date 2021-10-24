@@ -44,7 +44,7 @@ def generate_holdings_report(token_info: dict, trading_report: TradingReport) ->
 
 def get_metrics(trading_report: TradingReport, report_df: pd.DataFrame) -> dict:
     metrics = {
-        'total_investment': Decimal(trading_report.total_deposits),
+        'total_investment': Decimal(trading_report.total_deposits) - Decimal(trading_report.total_withdrawals),
         'total_current_value': Decimal(report_df['CURRENT VALUE'].sum()),
     }
     metrics['gains'] = (metrics['total_current_value'] / metrics['total_investment'] - 1) * 100
@@ -101,7 +101,7 @@ def main():
         get_payloads(USDT, payloads)
         trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][TICKER][BUY]))
         getcontext().prec = 10
-        pool_size = 16
+        pool_size = 16  # I have an 8 core CPU
         pool = Pool(pool_size)
         for ticker in trading_report.holdings:
             pool.apply_async(get_payloads, (ticker, payloads))
