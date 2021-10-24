@@ -1,3 +1,7 @@
+from sty import fg, ef
+from token_constants import *
+
+
 class BColors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -22,3 +26,9 @@ def progress_bar(index, total, bar_len=50):
 
     print(f'{BColors.WARNING if percent_done < 100 else BColors.OKCYAN}GATHERING DATA: [{done_str}{togo_str}] '
           f'{percent_done}% Done{BColors.ENDC}', end='\r')
+
+
+color_encoding = [fg.li_cyan, (fg.li_red, fg.da_green), fg.cyan, fg.yellow, (fg.li_red, fg.da_green),
+                  (fg.li_red, fg.da_green)]
+text_formatting = [ef.bold, ef.bold, ef.bold, '', ef.bold, ef.bold]
+prefixes = ['', RUPEE, '', RUPEE, RUPEE, (UP_ARROW, DOWN_ARROW)]
