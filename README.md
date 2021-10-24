@@ -16,7 +16,7 @@ If you have been investing in cryptocurrencies in India, there is a very good ch
 <li>Get all the current holdings gains/losses</li>
 <li>Overall gains/losses for your current portfolio of tokens and deposits</li>
 <li>Real time data (updated every 10 seconds)</li>
-<li>Multithreading for API Calls (10-15x gains)</li>
+<li>Multithreading for API Calls (10-15x performance gains)</li>
 <li>High precision calculations using <code>Decimal</code> library</li>
 <li>All the stats right on your Terminal with one single command</li>
 </ol>
