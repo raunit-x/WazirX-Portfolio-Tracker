@@ -96,7 +96,7 @@ def print_report(report_df: pd.DataFrame, trading_report: TradingReport):
 
 def main():
     while True:
-        trading_report_path = '/Users/raunitdalal/PycharmProjects/myCryptoApp/Trading Reports/trading_report.xlsx'
+        trading_report_path = os.environ.get('TRADING_REPORT_PATH', None)
         payloads = {}
         get_payloads(USDT, payloads)
         trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][TICKER][BUY]))
