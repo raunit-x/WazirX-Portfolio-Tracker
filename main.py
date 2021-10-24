@@ -8,7 +8,7 @@ from multiprocessing.pool import ThreadPool as Pool
 import pandas as pd
 from token_constants import *
 from terminal_formatting import *
-from sty import fg, bg, ef, rs
+from sty import fg, ef
 
 
 def get_payloads(ticker: str, payloads: dict):
