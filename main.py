@@ -7,6 +7,7 @@ from decimal import *
 from multiprocessing.pool import ThreadPool as Pool
 import pandas as pd
 from terminal_formatting import *
+import argparse
 
 
 def get_payloads(ticker: str, payloads: dict):
@@ -31,14 +32,20 @@ def get_value_per_token(payloads: dict, trading_report: TradingReport) -> dict:
     return value_per_token
 
 
-def generate_holdings_report(token_info: dict, trading_report: TradingReport) -> pd.DataFrame:
+def generate_holdings_report(token_info: dict, trading_report: TradingReport, col) -> pd.DataFrame:
     report_df = pd.DataFrame(columns=['TOKEN', 'CURRENT PRICE', 'HOLDINGS', 'INVESTMENT',
                                       'CURRENT VALUE', 'GAINS (%)'])
+    for col_name in report_df.columns:
+        if col and (col in "_".join(col_name.lower().split()) or col in col_name.lower()):
+            col = col_name
+            break
+    else:
+        col = 'CURRENT VALUE'
     for i, tok in enumerate(trading_report.holdings):
         gains = 100 * ((token_info[tok][TOTAL_VALUE] / trading_report.investment_per_token[tok]) - 1)
         report_df.loc[i] = [tok, token_info[tok][BUY], Decimal(trading_report.holdings[tok]), trading_report.investment_per_token[tok],
                             token_info[tok][TOTAL_VALUE], gains]
-    report_df.sort_values(by='CURRENT VALUE', ascending=False, inplace=True, ignore_index=True)
+    report_df.sort_values(by=col, ascending=False, inplace=True, ignore_index=True)
     return report_df
 
 
@@ -98,9 +105,14 @@ def print_report(report_df: pd.DataFrame, trading_report: TradingReport, column_
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-tp', '--trading_report_path', type=str, help='Trading report path')
+    parser.add_argument('-col', '--sort_by_column', type=str, help="Column to sort with [gains, current_value, "
+                                                                   "investment, current_price]")
+    args = parser.parse_args()
     column_length = 18
     while True:
-        trading_report_path = os.environ.get('TRADING_REPORT_PATH', None)
+        trading_report_path = args.trading_report_path or os.environ.get('TRADING_REPORT_PATH', None)
         payloads = {}
         get_payloads(USDT, payloads)
         trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][TICKER][BUY]))
@@ -114,7 +126,7 @@ def main():
         token_info = get_value_per_token(payloads, trading_report)
         os.system('cls' if os.name == 'nt' else 'clear')
         print(f"{' ':{2 * column_length}}{ef.inverse}{ef.bold}{fg.li_cyan}{BColors.UNDERLINE}{ef.italic}WAZIRX{rs.italic}{fg.li_yellow} PORTFOLIO TRACKER{rs.bold_dim}{BColors.ENDC}{rs.inverse}\n")
-        report_df = generate_holdings_report(token_info, trading_report)
+        report_df = generate_holdings_report(token_info, trading_report, col=args.sort_by_column)
         print_report(report_df, trading_report, column_length)
         for i in range(10, -1, -1):
             time.sleep(1)
