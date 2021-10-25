@@ -87,7 +87,11 @@ def print_report(report_df: pd.DataFrame, trading_report: TradingReport, column_
             if isinstance(prefix, tuple):
                 prefix = prefix[int(report_df.iloc[i][j] < 0)]
 
-            val = f"{prefix}{' ' * int(j == n - 1)}{val}{' %' * int(j == n - 1)}"
+            symbol = ''
+            if not j:
+                symbol = f" ({TOKEN_SYMBOLS.get(val)})" if TOKEN_SYMBOLS.get(val) else ''
+
+            val = f"{prefix}{' ' * int(j == n - 1)}{val}{symbol}{' %' * int(j == n - 1)}"
 
             row_string += f"{text_fmt}{color}{val:{column_length}}"
         print(f"{row_string}\n\n", end='\r')

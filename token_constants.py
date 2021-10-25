@@ -7,3 +7,4 @@ VOLUME = 'vol'
 UP_ARROW = '\u2191'
 DOWN_ARROW = '\u2193'
 RUPEE = '₹'
+TOKEN_SYMBOLS = {'BTC': '₿', 'ETH': '⟠', 'XRP': '✕', 'ADA': '₳', 'THETA': 'ϑ', 'ALGO': 'Ⱥ'}
