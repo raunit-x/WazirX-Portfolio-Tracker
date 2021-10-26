@@ -1,5 +1,4 @@
 import requests
-import os
 from trading_report_analysis import TradingReport
 from wazirx_api import wazirx_api_details
 import time
