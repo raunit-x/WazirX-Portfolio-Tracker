@@ -129,9 +129,10 @@ def valid_payloads(payloads: dict, trading_report: TradingReport):
 
 def print_to_terminal(token_info: dict, trading_report: TradingReport, args, column_length=18):
     os.system('cls' if os.name == 'nt' else 'clear')
-    print(
-        f"{' ':{2 * column_length}}{ef.inverse}{ef.bold}{fg.li_cyan}{BColors.UNDERLINE}{ef.italic}WAZIRX{rs.italic}{fg.li_yellow} PORTFOLIO TRACKER{rs.bold_dim}{BColors.ENDC}{rs.inverse}\n")
-    print(f"{fg.cyan}UDST ({TOKEN_SYMBOLS['USDT']}) to INR: {ef.bold}{RUPEE}{float(trading_report.usdt_to_inr):.2f}{rs.dim_bold}")
+    print(f"{' ':{2 * column_length}}{ef.inverse}{ef.bold}{fg.li_cyan}{BColors.UNDERLINE}{ef.italic}"
+          f"WAZIRX{rs.italic}{fg.li_yellow} PORTFOLIO TRACKER{rs.bold_dim}{BColors.ENDC}{rs.inverse}\n")
+    print(f"{fg.cyan}UDST ({TOKEN_SYMBOLS['USDT']}) to INR: "
+          f"{ef.bold}{RUPEE}{float(trading_report.usdt_to_inr):.2f}{rs.dim_bold}")
     report_df = generate_holdings_report(token_info, trading_report, col=args.sort_by_column)
     print_report(report_df, trading_report, column_length)
     for i in range(10, -1, -1):
