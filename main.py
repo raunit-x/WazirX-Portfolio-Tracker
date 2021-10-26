@@ -8,7 +8,7 @@ from multiprocessing.pool import ThreadPool as Pool
 import pandas as pd
 from terminal_formatting import *
 import argparse
-import pickle
+from utils import *
 
 
 def get_payloads(ticker: str, payloads: dict):
@@ -141,18 +141,6 @@ def print_to_terminal(token_info: dict, trading_report: TradingReport, args, col
               end='\r')
 
 
-def save_to_pickle(payloads: dict, filename='payloads.pkl'):
-    curr_dir = "/" + "/".join([f for f in __file__.split('/')[:-1] if f])
-    with open(os.path.join(curr_dir, 'Previous Prices', filename), 'wb') as fp:
-        pickle.dump(payloads, fp)  # , protocol=pickle.HIGHEST_PROTOCOL)
-
-
-def load_from_pickle(filename='payloads.pkl') -> dict:
-    curr_dir = "/" + "/".join([f for f in __file__.split('/')[:-1] if f])
-    with open(os.path.join(curr_dir, 'Previous Prices', filename), 'rb') as f:
-        return pickle.load(f)
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-tp', '--trading_report_path', type=str, help='Trading report path')
@@ -172,13 +160,9 @@ def main():
             pool.apply_async(get_payloads, (ticker, payloads))
         pool.close()
         pool.join()
-
-        print(payloads)
         if valid_payloads(payloads, trading_report):
             save_to_pickle(payloads)
         payloads = load_from_pickle()
-
-        print(payloads)
         token_info = get_token_info(payloads, trading_report)
         populate_trading_currency_per_token(payloads, trading_report)
         print_to_terminal(token_info, trading_report, args, column_length)
