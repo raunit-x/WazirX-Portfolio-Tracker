@@ -20,11 +20,13 @@ class TradingReport:
         self.current_balance = Decimal('0')
         self.usdt_to_inr = usdt_to_inr
         self.read_account_balance(self.trading_report['Account Balance'])
+        self.trading_currency_per_token = {}
         for sheet_name in self.excel_sheets:
             attr_name = f'read_{"_".join(sheet_name.lower().split())}'
             if attr_name not in self.__dir__() or attr_name == 'Account Balance':
                 continue
             self.__getattribute__(attr_name)(self.trading_report[sheet_name])
+            
 
     @staticmethod
     def read_excel(path):

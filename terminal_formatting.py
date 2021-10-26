@@ -28,7 +28,7 @@ def progress_bar(index, total, bar_len=50):
           f'{percent_done}% Done{BColors.ENDC}', end='\r')
 
 
-color_encoding = [fg.li_cyan, (fg.li_red, fg.da_green), fg.cyan, fg.yellow, (fg.li_red, fg.da_green),
+color_encoding = [fg.li_cyan, (fg.li_red, fg.li_green), fg.cyan, fg.yellow, (fg.li_red, fg.da_green),
                   (fg.li_red, fg.da_green)]
 text_formatting = [ef.bold, rs.dim_bold, ef.bold, rs.dim_bold, ef.bold, ef.bold]
-prefixes = ['', RUPEE, '', RUPEE, RUPEE, (UP_ARROW, DOWN_ARROW)]
+prefixes = ['', 'currency', '', RUPEE, RUPEE, (UP_ARROW, DOWN_ARROW)]
