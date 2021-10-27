@@ -10,3 +10,4 @@ RUPEE = '₹'
 TOKEN_SYMBOLS = {'BTC': '₿', 'ETH': '⟠', 'XRP': '✕', 'ADA': '₳', 'THETA': 'ϑ', 'ALGO': 'Ⱥ', 'USDT': '₮', 'INR': '₹'}
 CURRENCY = 'currency'
 ORIGINAL = 'original'
+SELL = 'sell'
