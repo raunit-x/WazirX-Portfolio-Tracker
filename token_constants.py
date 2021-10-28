@@ -11,3 +11,4 @@ TOKEN_SYMBOLS = {'BTC': '₿', 'ETH': '⟠', 'XRP': '✕', 'ADA': '₳', 'THETA'
 CURRENCY = 'currency'
 ORIGINAL = 'original'
 SELL = 'sell'
+TYPE = SELL

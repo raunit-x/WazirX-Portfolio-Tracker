@@ -26,7 +26,6 @@ class TradingReport:
             if attr_name not in self.__dir__() or attr_name == 'Account Balance':
                 continue
             self.__getattribute__(attr_name)(self.trading_report[sheet_name])
-            
 
     @staticmethod
     def read_excel(path):
@@ -40,6 +39,12 @@ class TradingReport:
 
     def read_account_balance(self, df: pd.DataFrame):
         self.holdings = {tok: bal for tok, bal in zip(df['Token'], df['Balance'])}
+
+    def add_usdt_to_account_balance(self):
+        if not self.holdings.get('USDT'):
+            return
+        self.current_balance += Decimal(self.holdings['USDT']) * self.usdt_to_inr
+        self.holdings.pop('USDT')
 
     def read_exchange_trades(self, df: pd.DataFrame):
         for i in range(len(df)):
@@ -62,3 +67,4 @@ class TradingReport:
 
     def read_account_ledger(self, df: pd.DataFrame):
         self.current_balance = Decimal(df['Balance'][0])
+        self.add_usdt_to_account_balance()

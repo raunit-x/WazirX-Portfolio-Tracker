@@ -11,44 +11,45 @@ from utils import *
 import json
 
 
-def down_time():
-    print(f"{ef.bold}{fg.cyan}{ef.inverse}WazirX{rs.inverse}{fg.red} servers unreachable!{rs.dim_bold}")
-    for i in range(20, -1, -1):
-        time.sleep(1)
-        i = f'{i:0}'
-        print(f" {ef.bold}{fg.da_green}REFRESHING DATA IN: {rs.bold_dim}{fg.cyan}{i.zfill(2)} "
-              f"SECONDS{rs.dim_bold}", end='\r')
-    main()
-
-
 def get_payloads(ticker: str, payloads: dict, error: dict):
     def get_data(tkr, currency=INR):
         url = os.path.join(BASE_API_ENDPOINT, VERSION, 'tickers', tkr + currency.lower())
         response = requests.get(url, params={'market': tkr + currency})
         try:
-            json_response = response.json()
-            return json_response
+            return response.json()
         except json.JSONDecodeError as e:
             error['ERROR'] = True
-            return {'ERROR': 'SERVERS NOT RESPONDING!'}
+            return {'Error'}
 
     currency = INR.upper()
     data = get_data(ticker.lower())
-    if data.get('ERROR'):
+    if error['ERROR']:
         return
     if data.get('code') == 2000 or not float(data[TICKER][VOLUME]):
         currency = USDT.upper()
         data = get_data(ticker.lower(), USDT)
-    if data.get('ERROR'):
+    if error['ERROR']:
         return
-    payloads[ticker] = {
-        ORIGINAL: Decimal(float(data[TICKER][SELL])),
-        SELL: Decimal(float(data[TICKER][SELL])) * payloads[currency.lower()][SELL],
-        CURRENCY: currency
-    }
+    data[TICKER][ORIGINAL] = Decimal(float(data[TICKER][SELL]))
+    data[TICKER][SELL] = data[TICKER][ORIGINAL] * payloads[currency.lower()][SELL]
+
+    payloads[ticker] = {SELL: data[TICKER][SELL], ORIGINAL: data[TICKER][ORIGINAL], 'currency': currency}
+
+
+def down_time():
+    os.system('clear')
+    print(f"{' ':{2 * 18}}{ef.inverse}{ef.bold}{fg.li_cyan}{BColors.UNDERLINE}{ef.italic}"
+          f"WAZIRX{rs.italic}{fg.li_yellow} PORTFOLIO TRACKER{rs.bold_dim}{BColors.ENDC}{rs.inverse}\n")
+    print(f"{ef.bold}{' ':{2 * 18}}{fg.da_red}SERVERS NOT RESPONDING!{rs.bold_dim}\n")
+    for i in range(10, -1, -1):
+        time.sleep(1)
+        i = f'{i:0}'
+        print(f" {ef.bold}{fg.green}{' ':{2 * 15}}RETRYING THE SERVERS IN: {rs.bold_dim}{fg.cyan}{i.zfill(2)} SECONDS{rs.dim_bold}",
+              end='\r')
 
 
 def get_token_info(payloads: dict, trading_report: TradingReport) -> dict:
+    # print(payloads)
     token_info = {
         ticker: {
             TOTAL_VALUE: Decimal(payloads[ticker][SELL]) * Decimal(num_coins),
@@ -76,8 +77,8 @@ def generate_holdings_report(token_info: dict, trading_report: TradingReport, co
         col = 'CURRENT VALUE'
     for i, tok in enumerate(trading_report.holdings):
         gains = 100 * ((token_info[tok][TOTAL_VALUE] / trading_report.investment_per_token[tok]) - 1)
-        report_df.loc[i] = [tok, token_info[tok][ORIGINAL], Decimal(trading_report.holdings[tok]), trading_report.investment_per_token[tok],
-                            token_info[tok][TOTAL_VALUE], gains]
+        report_df.loc[i] = [tok, token_info[tok][ORIGINAL], Decimal(trading_report.holdings[tok]),
+                            trading_report.investment_per_token[tok], token_info[tok][TOTAL_VALUE], gains]
     report_df.sort_values(by=col, ascending=False, inplace=True, ignore_index=True)
     return report_df
 
@@ -101,14 +102,15 @@ def print_metrics(metrics: dict):
     color = fg.li_green if total_current_value > total_investment else fg.li_red
     print(f"{ef.bold}{color}CURRENT PORTFOLIO : {rs.bold_dim}{RUPEE}{total_current_value:.2f}\n", end='\r')
     print(
-        f"{ef.bold}{color}GAINS : {rs.bold_dim}{RUPEE}{gains_total:.2f} ({UP_ARROW if gains > 0 else DOWN_ARROW} {gains:.2f} %)\n\n\n",
-        end='\r')
+        f"{ef.bold}{color}GAINS : {rs.bold_dim}{RUPEE}{gains_total:.2f}"
+        f" ({UP_ARROW if gains > 0 else DOWN_ARROW} {gains:.2f} %)\n\n\n", end='\r')
 
 
 def print_report(report_df: pd.DataFrame, trading_report: TradingReport, column_length=18):
     print_metrics(get_metrics(trading_report, report_df))
-    column_string = ''.join([f"{ef.bold}{fg.da_magenta}{col:{column_length}}{BColors.ENDC}" for col in report_df.columns])
-    print(f"{column_string}\n\n", end='')
+    column_string = ''.join([f"{ef.bold}{fg.da_magenta}{col:{column_length}}{BColors.ENDC}"
+                             for col in report_df.columns])
+    print(f"{column_string}\n\n", end='\x1b[1K\r')
     n = len(report_df.columns)
     for i in range(len(report_df)):
         row_string = ''
@@ -122,7 +124,7 @@ def print_report(report_df: pd.DataFrame, trading_report: TradingReport, column_
                 color = color[int(report_df.iloc[i][-1] > 0)]
 
             if isinstance(val, Decimal):
-                val = f"{float(val):.{2 + 2 * int(j in [1, 2])}f}"
+                val = f"{float(val):.{2 + 2 * int(j <= 2)}f}"
 
             if isinstance(prefix, tuple):
                 prefix = prefix[int(report_df.iloc[i][j] < 0)]
@@ -137,7 +139,7 @@ def print_report(report_df: pd.DataFrame, trading_report: TradingReport, column_
             val = f"{prefix}{' ' * int(j == n - 1)}{val}{symbol}{' %' * int(j == n - 1)}"
 
             row_string += f"{text_fmt}{color}{val:{column_length}}"
-        print(f"{row_string}\n\n", end='')
+        print(f"{row_string}\n\n", end='\r')
 
 
 def valid_payloads(payloads: dict, trading_report: TradingReport):
@@ -151,7 +153,7 @@ def print_to_terminal(token_info: dict, trading_report: TradingReport, args, col
     print(f"{' ':{2 * column_length}}{ef.inverse}{ef.bold}{fg.li_cyan}{BColors.UNDERLINE}{ef.italic}"
           f"WAZIRX{rs.italic}{fg.li_yellow} PORTFOLIO TRACKER{rs.bold_dim}{BColors.ENDC}{rs.inverse}\n")
     print(f"{fg.cyan}UDST ({TOKEN_SYMBOLS['USDT']}) to INR: "
-          f"{ef.bold}{RUPEE}{float(trading_report.usdt_to_inr):.3f}{rs.dim_bold}")
+          f"{ef.bold}{RUPEE}{float(trading_report.usdt_to_inr):.2f}{rs.dim_bold}")
     report_df = generate_holdings_report(token_info, trading_report, col=args.sort_by_column)
     print_report(report_df, trading_report, column_length)
     for i in range(10, -1, -1):
@@ -178,12 +180,17 @@ def main():
         pool_size = 16  # I have an 8 core CPU
         pool = Pool(pool_size)
         for ticker in trading_report.holdings:
-            pool.apply_async(get_payloads, (ticker, payloads))
+            pool.apply_async(get_payloads, (ticker, payloads, error))
         pool.close()
         pool.join()
+        print(payloads)
+        if error['ERROR']:
+            down_time()
+
         if valid_payloads(payloads, trading_report):
             save_to_pickle(payloads)
         payloads = load_from_pickle()
+
         token_info = get_token_info(payloads, trading_report)
         populate_trading_currency_per_token(payloads, trading_report)
         print_to_terminal(token_info, trading_report, args, column_length)
@@ -193,4 +200,3 @@ if __name__ == '__main__':
     BASE_API_ENDPOINT = wazirx_api_details.BASE_API_ENDPOINT
     VERSION = wazirx_api_details.VERSION
     main()
-
