@@ -30,10 +30,10 @@ def get_payloads(ticker: str, payloads: dict, error: dict):
         data = get_data(ticker.lower(), USDT)
     if error['ERROR']:
         return
-    data[TICKER][ORIGINAL] = Decimal(float(data[TICKER][SELL]))
-    data[TICKER][SELL] = data[TICKER][ORIGINAL] * payloads[currency.lower()][SELL]
+    data[TICKER][ORIGINAL] = Decimal(float(data[TICKER][TYPE]))
+    data[TICKER][TYPE] = data[TICKER][ORIGINAL] * payloads[currency.lower()][TYPE]
 
-    payloads[ticker] = {SELL: data[TICKER][SELL], ORIGINAL: data[TICKER][ORIGINAL], 'currency': currency}
+    payloads[ticker] = {TYPE: data[TICKER][TYPE], ORIGINAL: data[TICKER][ORIGINAL], 'currency': currency}
 
 
 def down_time():
@@ -52,8 +52,8 @@ def get_token_info(payloads: dict, trading_report: TradingReport) -> dict:
     # print(payloads)
     token_info = {
         ticker: {
-            TOTAL_VALUE: Decimal(payloads[ticker][SELL]) * Decimal(num_coins),
-            SELL: Decimal(payloads[ticker][SELL]),
+            TOTAL_VALUE: Decimal(payloads[ticker][TYPE]) * Decimal(num_coins),
+            TYPE: Decimal(payloads[ticker][TYPE]),
             CURRENCY: payloads[ticker][CURRENCY],
             ORIGINAL: payloads[ticker][ORIGINAL]
         } for ticker, num_coins in trading_report.holdings.items()}
@@ -172,10 +172,10 @@ def main():
     column_length = 18
     while True:
         trading_report_path = args.trading_report_path or os.environ.get('TRADING_REPORT_PATH', None)
-        payloads = {INR: {SELL: Decimal('1')}}
+        payloads = {INR: {TYPE: Decimal('1')}}
         error = {'ERROR': False}
         get_payloads(USDT, payloads, error)
-        trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][SELL]))
+        trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][TYPE]))
         getcontext().prec = 10
         pool_size = 16  # I have an 8 core CPU
         pool = Pool(pool_size)
