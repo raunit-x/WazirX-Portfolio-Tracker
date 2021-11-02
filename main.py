@@ -44,8 +44,8 @@ def down_time():
     for i in range(10, -1, -1):
         time.sleep(1)
         i = f'{i:0}'
-        print(f" {ef.bold}{fg.green}{' ':{2 * 15}}RETRYING THE SERVERS IN: {rs.bold_dim}{fg.cyan}{i.zfill(2)} SECONDS{rs.dim_bold}",
-              end='\r')
+        print(f" {ef.bold}{fg.green}{' ':{2 * 15}}RETRYING THE SERVERS IN: "
+              f"{rs.bold_dim}{fg.cyan}{i.zfill(2)} SECONDS{rs.dim_bold}", end='\r')
 
 
 def get_token_info(payloads: dict, trading_report: TradingReport) -> dict:
@@ -97,7 +97,6 @@ def print_metrics(metrics: dict):
     total_investment = metrics['total_investment']
     total_current_value = metrics['total_current_value']
     gains, gains_total = metrics['gains'], metrics['gains_total']
-
     print(f"\n{ef.bold}{fg.li_yellow}INITIAL INVESTMENT: {rs.bold_dim}{RUPEE}{total_investment:.2f}\n", end='\r')
     color = fg.li_green if total_current_value > total_investment else fg.li_red
     print(f"{ef.bold}{color}CURRENT PORTFOLIO : {rs.bold_dim}{RUPEE}{total_current_value:.2f}\n", end='\r')
@@ -190,7 +189,6 @@ def main():
         if valid_payloads(payloads, trading_report):
             save_to_pickle(payloads)
         payloads = load_from_pickle()
-
         token_info = get_token_info(payloads, trading_report)
         populate_trading_currency_per_token(payloads, trading_report)
         print_to_terminal(token_info, trading_report, args, column_length)
