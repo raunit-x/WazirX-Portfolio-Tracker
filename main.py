@@ -20,6 +20,9 @@ def get_payloads(ticker: str, payloads: dict, error: dict):
         except json.JSONDecodeError as e:
             error['ERROR'] = True
             return {'Error'}
+        except ConnectionError as e:
+            print(f"{ef.bold}{ef.inverse}{fg.da_red}No internet Connection! Try again later...")
+            exit(0)
 
     currency = INR.upper()
     data = get_data(ticker.lower())
