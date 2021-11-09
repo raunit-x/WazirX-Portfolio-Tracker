@@ -17,10 +17,10 @@ def get_payloads(ticker: str, payloads: dict, error: dict):
         response = requests.get(url, params={'market': tkr + currency})
         try:
             return response.json()
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError or ConnectionResetError:
             error['ERROR'] = True
             return {'Error'}
-        except ConnectionError as e:
+        except ConnectionError or ConnectionAbortedError or ConnectionRefusedError as e:
             print(f"{ef.bold}{ef.inverse}{fg.da_red}No internet Connection! Try again later...")
             exit(0)
 
