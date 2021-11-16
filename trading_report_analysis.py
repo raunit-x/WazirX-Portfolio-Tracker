@@ -44,6 +44,7 @@ class TradingReport:
         if not self.holdings.get('USDT'):
             return
         self.current_balance += Decimal(self.holdings['USDT']) * self.usdt_to_inr
+        # if 'USDT' in self.holdings:
         self.holdings.pop('USDT')
 
     def read_exchange_trades(self, df: pd.DataFrame):
@@ -67,4 +68,6 @@ class TradingReport:
 
     def read_account_ledger(self, df: pd.DataFrame):
         self.current_balance = Decimal(df['Balance'][0])
+        if 'INR' in self.holdings:
+            self.holdings.pop('INR')
         self.add_usdt_to_account_balance()

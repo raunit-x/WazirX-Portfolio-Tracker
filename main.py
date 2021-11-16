@@ -17,10 +17,10 @@ def get_payloads(ticker: str, payloads: dict, error: dict):
         response = requests.get(url, params={'market': tkr + currency})
         try:
             return response.json()
-        except json.JSONDecodeError or ConnectionResetError:
+        except json.JSONDecodeError:
             error['ERROR'] = True
             return {'Error'}
-        except ConnectionError or ConnectionAbortedError or ConnectionRefusedError as e:
+        except ConnectionError or ConnectionAbortedError or ConnectionRefusedError or ConnectionResetError as e:
             print(f"{ef.bold}{ef.inverse}{fg.da_red}No internet Connection! Try again later...")
             exit(0)
 
@@ -53,6 +53,7 @@ def down_time():
 
 def get_token_info(payloads: dict, trading_report: TradingReport) -> dict:
     # print(payloads)
+    # print(trading_report.holdings)
     token_info = {
         ticker: {
             TOTAL_VALUE: Decimal(payloads[ticker][TYPE]) * Decimal(num_coins),
@@ -177,7 +178,10 @@ def main():
         payloads = {INR: {TYPE: Decimal('1')}}
         error = {'ERROR': False}
         get_payloads(USDT, payloads, error)
-        trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][TYPE]))
+        try:
+            trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][TYPE]))
+        except KeyError:
+            trading_report = TradingReport(trading_report_path, Decimal('78.2'))
         getcontext().prec = 10
         pool_size = 16  # I have an 8 core CPU
         pool = Pool(pool_size)
