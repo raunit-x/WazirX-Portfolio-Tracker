@@ -9,18 +9,20 @@ from terminal_formatting import *
 import argparse
 from utils import *
 import json
+import requests
+from urllib3.exceptions import ProtocolError
 
 
 def get_payloads(ticker: str, payloads: dict, error: dict):
     def get_data(tkr, currency=INR):
-        url = os.path.join(BASE_API_ENDPOINT, VERSION, 'tickers', tkr + currency.lower())
-        response = requests.get(url, params={'market': tkr + currency})
+        url = os.path.join(BASE_API_ENDPOINT, VERSION, 'tickers', tkr.lower() + currency.lower())
+        response = requests.get(url, params={'market': tkr.lower() + currency.lower()})
         try:
             return response.json()
         except json.JSONDecodeError:
             error['ERROR'] = True
             return {'Error'}
-        except ConnectionError or ConnectionAbortedError or ConnectionRefusedError or ConnectionResetError as e:
+        except ConnectionError or ConnectionAbortedError or ConnectionRefusedError or ConnectionResetError or ProtocolError:
             print(f"{ef.bold}{ef.inverse}{fg.da_red}No internet Connection! Try again later...")
             exit(0)
 
@@ -28,7 +30,7 @@ def get_payloads(ticker: str, payloads: dict, error: dict):
     data = get_data(ticker.lower())
     if error['ERROR']:
         return
-    if data.get('code') == 2000 or not float(data[TICKER][VOLUME]):
+    if data.get('code') == 2000 or data.get('code') == 1999 or not float(data[TICKER][VOLUME]):
         currency = USDT.upper()
         data = get_data(ticker.lower(), USDT)
     if error['ERROR']:
@@ -52,8 +54,6 @@ def down_time():
 
 
 def get_token_info(payloads: dict, trading_report: TradingReport) -> dict:
-    # print(payloads)
-    # print(trading_report.holdings)
     token_info = {
         ticker: {
             TOTAL_VALUE: Decimal(payloads[ticker][TYPE]) * Decimal(num_coins),
@@ -146,8 +146,6 @@ def print_report(report_df: pd.DataFrame, trading_report: TradingReport, column_
 
 
 def valid_payloads(payloads: dict, trading_report: TradingReport):
-    # for token in trading_report.holdings:
-    #     print(token, payloads.get(token))
     return all(token in payloads for token in trading_report.holdings)
 
 
@@ -173,15 +171,15 @@ def main():
                                                                    "investment, current_price]")
     args = parser.parse_args()
     column_length = 18
+    trading_report_path = args.trading_report_path or os.environ.get('TRADING_REPORT_PATH', None)
+    payloads = {INR: {TYPE: Decimal('1')}}
+    error = {'ERROR': False}
+    get_payloads(USDT, payloads, error)
+    try:
+        trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][TYPE]))
+    except KeyError:
+        trading_report = TradingReport(trading_report_path, Decimal('78.2'))
     while True:
-        trading_report_path = args.trading_report_path or os.environ.get('TRADING_REPORT_PATH', None)
-        payloads = {INR: {TYPE: Decimal('1')}}
-        error = {'ERROR': False}
-        get_payloads(USDT, payloads, error)
-        try:
-            trading_report = TradingReport(trading_report_path, Decimal(payloads[USDT][TYPE]))
-        except KeyError:
-            trading_report = TradingReport(trading_report_path, Decimal('78.2'))
         getcontext().prec = 10
         pool_size = 16  # I have an 8 core CPU
         pool = Pool(pool_size)
@@ -189,10 +187,10 @@ def main():
             pool.apply_async(get_payloads, (ticker, payloads, error))
         pool.close()
         pool.join()
-        print(payloads)
+        for ticker in trading_report.holdings:
+            get_payloads(ticker, payloads, error)
         if error['ERROR']:
             down_time()
-
         if valid_payloads(payloads, trading_report):
             save_to_pickle(payloads)
         payloads = load_from_pickle()
