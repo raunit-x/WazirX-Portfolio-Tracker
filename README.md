@@ -34,8 +34,8 @@ If you have been investing in cryptocurrencies in India, there is a very good ch
 <h2>TODO (TO THE MOON!)</h2>
 <ol>
 <li>Currently only supports transactions/exchanges from <code>Token/INR or token/USDT</code>; Add support for all exchanges</li>
+<li>Parse <code>P2P Trades</code>, <code>OTC Trades</code>, <code>Additional Transfers</code>, <code>STF Trades</code> and <code>Third Party Transfers</code> from the Trading Report xlsx file</li>
 <li>Add CL arguments to sort according to different metrics</li>
 <li>Automate the addition of all your Trading Reports in one file</li>
 <li>Add alerts for different price points; leading to actionable results such as buying/selling on targets</li>
-<li>Improvements to the UI</li>
 </ol>
